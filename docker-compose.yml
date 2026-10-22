@@ -104,6 +104,24 @@ services:
     restart: unless-stopped
     command: ["--nginx.scrape-uri=http://nginx:8080/stub_status"]
     networks: [monitoring]
+  loki:
+    image: grafana/loki:3.0.0
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./logging/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    networks: [monitoring]
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./logging/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on: [loki]
+    networks: [monitoring]
 networks:
   frontend:
   backend:
@@ -114,3 +132,4 @@ volumes:
   db_data:
   prom_data:
   grafana_data:
+  loki_data:
